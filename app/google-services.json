@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1033015882607",
+    "firebase_url": "https://anime-episode-no-1537299028134.firebaseio.com",
+    "project_id": "anime-episode-no-1537299028134",
+    "storage_bucket": "anime-episode-no-1537299028134.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1033015882607:android:169be7087616f921",
+        "android_client_info": {
+          "package_name": "com.example.jhuang.newanimenotification"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1033015882607-99gtv4oc7q3lr61mvspag8gk4fu96v47.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.jhuang.newanimenotification",
+            "certificate_hash": "1f1edb0c5ecfc91e0be1a5dea4cf900b32123d3f"
+          }
+        },
+        {
+          "client_id": "1033015882607-a8fmvfmkch68o58j5407l2d0u5o1kdq7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZ65gMqKCv2Abnc4cjMsf-0IdEZIiuCHQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1033015882607-a8fmvfmkch68o58j5407l2d0u5o1kdq7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
