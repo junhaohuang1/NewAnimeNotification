@@ -1,5 +1,7 @@
 package com.example.jhuang.newanimenotification;
 
+import android.graphics.Color;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,6 +14,7 @@ import android.view.View;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
@@ -27,6 +30,7 @@ import com.android.volley.toolbox.Volley;
 
 import com.google.android.gms.iid.InstanceID;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.AuthResult;
@@ -38,7 +42,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-
+import com.google.firebase.messaging.FirebaseMessagingService;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -55,6 +59,7 @@ import java.util.Map;
 
 import com.example.jhuang.newanimenotification.AnimeInformation;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -68,8 +73,7 @@ public class MainActivity extends AppCompatActivity {
 
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
         final String apiKey = "";
-        String iid = FirebaseInstanceId.getInstance(FirebaseApp.initializeApp(getApplicationContext())).getId();
-        String id12 = InstanceID.getInstance(getApplicationContext()).getId();
+        String iid = FirebaseInstanceId.getInstance().getToken();
         String url = "https://iid.googleapis.com/iid/info/" + iid + "?details=true";
 
         // Request a string response from the provided URL.
@@ -116,6 +120,18 @@ public class MainActivity extends AppCompatActivity {
         queue.add(request);
     }
 
+    public void subscribeToTopics(String topic){
+        FirebaseMessaging.getInstance().subscribeToTopic("news").addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Toast.makeText(getApplicationContext(),"Success",Toast.LENGTH_LONG).show();
+            }
+        });
+
+
+    }
+
+
 
     // Add the request to the RequestQueue.
 
@@ -148,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
                             CheckBox cb = new CheckBox(getApplicationContext());
                             cb.setText(temp);
                             cb.setId(++chkId);
+                            cb.setTextColor(Color.BLACK);
                             cb.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
