@@ -42,6 +42,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.InstanceIdResult;
 import com.google.firebase.messaging.FirebaseMessagingService;
 
 import org.json.JSONArray;
@@ -60,6 +61,7 @@ import java.util.Map;
 import com.example.jhuang.newanimenotification.AnimeInformation;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.RemoteMessage;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -69,66 +71,81 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
 
-    public void getSubscribedTopics(){
 
-        RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-        final String apiKey = "";
-        String iid = FirebaseInstanceId.getInstance().getToken();
-        String url = "https://iid.googleapis.com/iid/info/" + iid + "?details=true";
+    public void getSubscribedTopics(View view){
 
-        // Request a string response from the provided URL.
-        StringRequest request = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>()
-                {
-                    @Override
-                    public void onResponse(String response) {
-                        // response
-                        Log.d("Response", response);
-                    }
-                },
-                new Response.ErrorListener()
-                {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        NetworkResponse response = error.networkResponse;
-                        if (error instanceof ServerError && response != null) {
-                            try {
-                                String res = new String(response.data,
-                                        HttpHeaderParser.parseCharset(response.headers, "utf-8"));
-                                // Now you can use any deserializer to make sense of data
-                                JSONObject obj = new JSONObject(res);
-                            } catch (UnsupportedEncodingException e1) {
-                                // Couldn't properly decode data to string
-                                e1.printStackTrace();
-                            } catch (JSONException e2) {
-                                // returned data is not JSONObject?
-                                e2.printStackTrace();
+        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener( this,  new OnSuccessListener<InstanceIdResult>() {
+            @Override
+            public void onSuccess(InstanceIdResult instanceIdResult) {
+                String newToken = instanceIdResult.getToken();
+                RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
+                String url = "https://iid.googleapis.com/iid/info/" + newToken + "?details=true";
+
+                // Request a string response from the provided URL.
+                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                        (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+
+                            @Override
+                            public void onResponse(JSONObject response) {
+
+
+                                Log.d(TAG,"Response: " + response.toString());
                             }
-                        }
-                    }
-                }
-        ) {
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                Log.d("Response", "authorization failed");
-                Map<String, String>  params = new HashMap<String, String>();
-                params.put("Content-Type", "application/json; charset=UTF-8");
-                params.put("Authorization", "key=" + apiKey);
-                return params;
-            }
-        };
-        queue.add(request);
-    }
+                        }, new Response.ErrorListener() {
 
-    public void subscribeToTopics(String topic){
-        FirebaseMessaging.getInstance().subscribeToTopic("news").addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                Toast.makeText(getApplicationContext(),"Success",Toast.LENGTH_LONG).show();
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                NetworkResponse response = error.networkResponse;
+                                if (error instanceof ServerError && response != null) {
+                                    try {
+                                        String res = new String(response.data,
+                                                HttpHeaderParser.parseCharset(response.headers, "utf-8"));
+                                        // Now you can use any deserializer to make sense of data
+                                        JSONObject obj = new JSONObject(res);
+                                    } catch (UnsupportedEncodingException e1) {
+                                        // Couldn't properly decode data to string
+                                        e1.printStackTrace();
+                                    } catch (JSONException e2) {
+                                        // returned data is not JSONObject?
+                                        e2.printStackTrace();
+                                    }
+                                }
+                            }
+                        }) {
+                    @Override
+                    public Map<String, String> getHeaders() throws AuthFailureError {
+                        Log.d("Response", "putting in header");
+                        Map<String, String>  params = new HashMap<String, String>();
+                        params.put("Content-Type", "application/json; charset=UTF-8");
+                        params.put("Authorization", "key=" + "apiKey");
+                        return params;
+                    }
+                };
+                queue.add(jsonObjectRequest);
             }
         });
 
 
+    }
+
+    public void subscribeToTopics(final String topic){
+        FirebaseMessaging.getInstance().subscribeToTopic(topic.replaceAll("\\s+","")).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Toast.makeText(getApplicationContext(),"Success! Subscribed to " + topic,Toast.LENGTH_LONG).show();
+            }
+        });
+
+
+    }
+
+    public void unsubscribeToTopics(final String topic){
+        FirebaseMessaging.getInstance().unsubscribeFromTopic(topic.replaceAll("\\s+","")).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Toast.makeText(getApplicationContext(),"Success! Unubscribed to " + topic,Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
 
@@ -159,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
                             it.remove();
                         }
                         Collections.sort(animeNames);
-                        for (String temp : animeNames) {
+                        for (final String temp : animeNames) {
                             int chkId = 1001;
                             CheckBox cb = new CheckBox(getApplicationContext());
                             cb.setText(temp);
@@ -168,7 +185,12 @@ public class MainActivity extends AppCompatActivity {
                             cb.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
-                                    getSubscribedTopics();
+                                    CheckBox currentCB = (CheckBox) v;
+                                    if(currentCB.isChecked()){
+                                        unsubscribeToTopics(temp);
+                                    } else {
+                                        subscribeToTopics(temp);
+                                    }
                                 }
                             });
                             layout.addView(cb);

@@ -24,12 +24,12 @@
             <!--android:layout_weight="1"-->
             <!--android:gravity="top"-->
             <!--android:hint="@string/message" />-->
-        <!--<Button-->
-            <!--android:layout_width="100dp"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:layout_gravity="right"-->
-            <!--android:text="test"-->
-            <!--android:onClick="createAnimeList"/>-->
+        <Button
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:text="test"
+            android:onClick="getSubscribedTopics"/>
 
     </LinearLayout>
 </ScrollView>
