@@ -1,15 +1,8 @@
 package com.example.jhuang.newanimenotification;
 
 import android.graphics.Color;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.util.Log;
 import android.view.ViewGroup;
@@ -24,18 +17,11 @@ import com.android.volley.Response;
 import com.android.volley.ServerError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
-import com.google.android.gms.iid.InstanceID;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -43,9 +29,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.InstanceIdResult;
-import com.google.firebase.messaging.FirebaseMessagingService;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -58,21 +42,24 @@ import java.util.Iterator;
 import java.util.Map;
 
 
-import com.example.jhuang.newanimenotification.AnimeInformation;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.RemoteMessage;
 
+import com.example.jhuang.newanimenotification.CredentialsConfig;
 
 public class MainActivity extends AppCompatActivity {
 
     private DatabaseReference mDatabase;
     private FirebaseAuth mAuth;
+    private CredentialsConfig credentials = new CredentialsConfig();
     private static final String TAG = "MainActivity";
+    private static Iterator<String> result;
+    private String apiKey = credentials.getApiKey();
+    private String userName = credentials.getUserName();
+    private String password = credentials.getPassword();
 
 
-
-    public void getSubscribedTopics(View view){
+    public void getSubscribedTopicsList(View view){
 
         FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener( this,  new OnSuccessListener<InstanceIdResult>() {
             @Override
@@ -82,14 +69,20 @@ public class MainActivity extends AppCompatActivity {
                 String url = "https://iid.googleapis.com/iid/info/" + newToken + "?details=true";
 
                 // Request a string response from the provided URL.
-                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                        (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                        new Response.Listener<String>() {
 
                             @Override
-                            public void onResponse(JSONObject response) {
+                            public void onResponse(String response) {
+                                try{
+                                    JSONObject body = new JSONObject(response);
+                                    result = body.getJSONObject("rel").getJSONObject("topics").keys();
+                                    Log.d(TAG,"Response: " + response.toString());
 
-
-                                Log.d(TAG,"Response: " + response.toString());
+                                } catch(JSONException e){
+                                    e.printStackTrace();
+                                    Toast.makeText(getApplicationContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                }
                             }
                         }, new Response.ErrorListener() {
 
@@ -117,15 +110,13 @@ public class MainActivity extends AppCompatActivity {
                         Log.d("Response", "putting in header");
                         Map<String, String>  params = new HashMap<String, String>();
                         params.put("Content-Type", "application/json; charset=UTF-8");
-                        params.put("Authorization", "key=" + "apiKey");
+                        params.put("Authorization", "key=" + apiKey);
                         return params;
                     }
                 };
-                queue.add(jsonObjectRequest);
+                queue.add(stringRequest);
             }
         });
-
-
     }
 
     public void subscribeToTopics(final String topic){
@@ -143,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
         FirebaseMessaging.getInstance().unsubscribeFromTopic(topic.replaceAll("\\s+","")).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
-                Toast.makeText(getApplicationContext(),"Success! Unubscribed to " + topic,Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(),"Success! Unsubscribed to " + topic,Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -158,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
         final ArrayList<String> animeNames = new ArrayList<String>();
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mAuth = FirebaseAuth.getInstance();
+        mAuth.signInWithEmailAndPassword(userName, password);
         Query query = mDatabase.child("anime");
         query.addListenerForSingleValueEvent(
                 new ValueEventListener() {
@@ -187,9 +179,9 @@ public class MainActivity extends AppCompatActivity {
                                 public void onClick(View v) {
                                     CheckBox currentCB = (CheckBox) v;
                                     if(currentCB.isChecked()){
-                                        unsubscribeToTopics(temp);
-                                    } else {
                                         subscribeToTopics(temp);
+                                    } else {
+                                        unsubscribeToTopics(temp);
                                     }
                                 }
                             });
