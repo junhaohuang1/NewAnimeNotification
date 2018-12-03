@@ -1,7 +1,9 @@
 package com.example.jhuang.newanimenotification;
 
 import android.content.Context;
+import android.nfc.Tag;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +12,7 @@ import android.widget.CheckedTextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.example.jhuang.newanimenotification.Model;
 import com.example.jhuang.newanimenotification.FirebaseActions;
@@ -19,11 +22,19 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
 
     private FirebaseActions firebaseInstance = new FirebaseActions();
     private List<Model> items = new ArrayList<>();
+    private Set<String> subscribedTopicsList;
     SparseBooleanArray itemStateArray= new SparseBooleanArray();
-    Adapter() {
+    Adapter(Set<String> newSubscribedTopicsList) {
+        setSubscribedTopicsList(newSubscribedTopicsList);
     }
 
+    public Set<String> getSubscribedTopicsList(){
+        return this.subscribedTopicsList;
+    }
 
+    public void setSubscribedTopicsList(Set<String> newSubscribedTopicsList){
+        this.subscribedTopicsList = newSubscribedTopicsList;
+    }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -36,7 +47,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.bind(position);
+        holder.bind(position, getSubscribedTopicsList());
     }
 
     @Override
@@ -62,18 +73,32 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
         ViewHolder(View itemView) {
             super(itemView);
             mCheckedTextView = (CheckedTextView) itemView.findViewById(R.id.checked_text_view);
+//            System.out.println("creating viewholder");
             itemView.setOnClickListener(this);
+
         }
 
-        void bind(int position) {
+        void bind(int position, Set<String> subscribedTopicsList) {
             // use the sparse boolean array to check
             if (!itemStateArray.get(position, false)) {
                 mCheckedTextView.setChecked(false);}
             else {
                 mCheckedTextView.setChecked(true);
             }
-            mCheckedTextView.setText(String.valueOf(items.get(position).getAnimeName()));
+//            System.out.println("binding stuff");
+            String currentBoxText = String.valueOf(items.get(position).getAnimeName());
+            mCheckedTextView.setText(currentBoxText);
+            checkIfAnimeIsSubscribed(subscribedTopicsList, position, currentBoxText);
         }
+
+        void checkIfAnimeIsSubscribed(Set<String> subscribedTopicsList, int position, String currentBoxText){
+
+            if(subscribedTopicsList.contains(currentBoxText.replaceAll("\\s+",""))){
+                mCheckedTextView.setChecked(true);
+                itemStateArray.put(position, true);
+            }
+        }
+
 
         @Override
         public void onClick(View v) {

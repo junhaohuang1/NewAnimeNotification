@@ -11,9 +11,12 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
@@ -64,11 +67,6 @@ public class MainActivity extends AppCompatActivity {
     private void fillItems() {
 
 
-        recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
-        final Adapter adapter = new Adapter();
-        layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setAdapter(adapter);
 
         FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(this,new OnSuccessListener<InstanceIdResult>() {
             @Override
@@ -85,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                             public void onResponse(String response) {
                                 try{
                                     JSONObject body = new JSONObject(response);
-                                    ArrayList<String> subscribedTopicsList = Lists.newArrayList(body.getJSONObject("rel").getJSONObject("topics").keys());
+                                    final Set<String> subscribedTopicsList = new HashSet<String>(Lists.newArrayList(body.getJSONObject("rel").getJSONObject("topics").keys()));
 //                                    Log.d(TAG,"Response: " + response.toString());
 
                                     mDatabase = FirebaseDatabase.getInstance().getReference();
@@ -93,9 +91,15 @@ public class MainActivity extends AppCompatActivity {
                                     mAuth.signInWithEmailAndPassword(userName, password);
                                     Query query = mDatabase.child("anime");
                                     query.addListenerForSingleValueEvent(
+
                                             new ValueEventListener() {
                                                 @Override
                                                 public void onDataChange(DataSnapshot dataSnapshot) {
+                                                    recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
+                                                    final Adapter adapter = new Adapter(subscribedTopicsList);
+                                                    layoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.VERTICAL, false);
+                                                    recyclerView.setLayoutManager(layoutManager);
+                                                    recyclerView.setAdapter(adapter);
                                                     ArrayList<String> airingAnimeList = new ArrayList<String>();
                                                     HashMap<String, Object> animeList = (HashMap<String, Object>) dataSnapshot.getValue();
                                                     Iterator it = animeList.entrySet().iterator();
@@ -105,9 +109,9 @@ public class MainActivity extends AppCompatActivity {
                                                         airingAnimeList.add(anime.get("name"));
                                                     }
                                                     Collections.sort(airingAnimeList);
+                                                    System.out.println("sorted the list");
                                                     int position = 0;
                                                     for(String anime : airingAnimeList){
-                                                        Log.i(TAG,"current anime is " + anime );
                                                         Model model = new Model();
                                                         model.setPosition(position+1);
                                                         model.setAnimeName(anime);
