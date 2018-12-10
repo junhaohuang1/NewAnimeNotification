@@ -85,7 +85,6 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
             else {
                 mCheckedTextView.setChecked(true);
             }
-//            System.out.println("binding stuff");
             String currentBoxText = String.valueOf(items.get(position).getAnimeName());
             mCheckedTextView.setText(currentBoxText);
             checkIfAnimeIsSubscribed(subscribedTopicsList, position, currentBoxText);
