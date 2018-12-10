@@ -6,6 +6,15 @@ public class Model {
      */
     private int position;
     private String animeName;
+    private boolean isExaminedInSubscriptions = false;
+
+    public boolean getIsExaminedInSubscriptions(){
+        return this.isExaminedInSubscriptions;
+    }
+
+    public void setIsExaminedInSubscriptions(boolean newValue){
+        this.isExaminedInSubscriptions = newValue;
+    }
 
     public String getAnimeName(){
         return this.animeName;

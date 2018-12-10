@@ -92,10 +92,12 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
         }
 
         void checkIfAnimeIsSubscribed(Set<String> subscribedTopicsList, int position, String currentBoxText){
-
-            if(subscribedTopicsList.contains(currentBoxText.replaceAll("\\s+",""))){
-                mCheckedTextView.setChecked(true);
-                itemStateArray.put(position, true);
+            if(!items.get(position).getIsExaminedInSubscriptions()){
+                if(subscribedTopicsList.contains(currentBoxText.replaceAll("\\s+",""))){
+                    mCheckedTextView.setChecked(true);
+                    itemStateArray.put(position, true);
+                }
+                items.get(position).setIsExaminedInSubscriptions(true);
             }
         }
 
